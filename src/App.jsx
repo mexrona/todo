@@ -1,4 +1,5 @@
 import {useState, useEffect} from "react";
+import Calendar from "./Calendar";
 
 export default function App() {
     // Состояние для списка задач
@@ -16,6 +17,11 @@ export default function App() {
     const [editingId, setEditingId] = useState(null);
     const [editValue, setEditValue] = useState("");
     const [editDueDate, setEditDueDate] = useState("");
+
+    // Состояние для вида (список или календарь)
+    const [viewMode, setViewMode] = useState("list"); // "list" или "calendar"
+    // Состояние для выбранной даты в календаре
+    const [selectedDate, setSelectedDate] = useState(null);
 
     // Загружаем задачи из localStorage когда компонент впервые монтируется
     useEffect(() => {
@@ -97,14 +103,28 @@ export default function App() {
 
     // Получить отфильтрованные задачи
     const getFilteredTodos = () => {
+        let filtered = todos;
+
+        // Фильтруем по статусу
         switch (filter) {
             case "active":
-                return todos.filter((todo) => !todo.completed);
+                filtered = filtered.filter((todo) => !todo.completed);
+                break;
             case "completed":
-                return todos.filter((todo) => todo.completed);
+                filtered = filtered.filter((todo) => todo.completed);
+                break;
             default:
-                return todos;
+                break;
         }
+
+        // Если выбрана дата в календаре, фильтруем по дате
+        if (selectedDate) {
+            filtered = filtered.filter(
+                (todo) => todo.dueDate === selectedDate || todo.createdAt === selectedDate
+            );
+        }
+
+        return filtered;
     };
 
     const filteredTodos = getFilteredTodos();
@@ -173,7 +193,7 @@ export default function App() {
 
                 {/* Фильтры и статистика */}
                 <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                    <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                         {/* Статистика */}
                         <div className="text-sm text-gray-600">
                             <span className="font-bold">Всего:</span>{" "}
@@ -182,6 +202,31 @@ export default function App() {
                             {stats.active} |
                             <span className="ml-2 font-bold">Выполнено:</span>{" "}
                             {stats.completed}
+                        </div>
+
+                        {/* Переключение вида */}
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => {
+                                    setViewMode("list");
+                                    setSelectedDate(null);
+                                }}
+                                className={`px-4 py-2 rounded-lg font-medium transition ${
+                                    viewMode === "list"
+                                        ? "bg-indigo-600 text-white"
+                                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                }`}>
+                                📋 Список
+                            </button>
+                            <button
+                                onClick={() => setViewMode("calendar")}
+                                className={`px-4 py-2 rounded-lg font-medium transition ${
+                                    viewMode === "calendar"
+                                        ? "bg-indigo-600 text-white"
+                                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                }`}>
+                                📅 Календарь
+                            </button>
                         </div>
                     </div>
 
@@ -203,6 +248,11 @@ export default function App() {
                         ))}
                     </div>
                 </div>
+
+                {/* Календарь или список */}
+                {viewMode === "calendar" ? (
+                    <Calendar todos={todos} onDateSelect={setSelectedDate} selectedDate={selectedDate} />
+                ) : null}
 
                 {/* Список задач */}
                 <div className="space-y-2">
