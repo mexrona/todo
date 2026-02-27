@@ -56,16 +56,29 @@ export default function App() {
         // Не добавляем пустые задачи
         if (inputValue.trim() === "") return;
 
+        // По умолчанию дедлайн через 24 часа (можно потом расширить UI для выбора срока)
+        const dueDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
         const newTodo = {
             id: Date.now(), // Простой способ создать уникальный ID
             text: inputValue,
             completed: false,
             createdAt: new Date().toLocaleDateString("ru-RU"),
+            dueAt: dueDate.toISOString(), // сохраняем ISO для дальнейшей обработки
         };
 
         setTodos([newTodo, ...todos]); // Добавляем новую задачу в начало
         setInputValue(""); // Очищаем инпут
-        showNotification("✅ Задача добавлена!");
+
+        // Показать уведомление с читабельным временем выполнения
+        const dueDisplay = dueDate.toLocaleString("ru-RU", {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+        showNotification(`✅ Задача добавлена! Выполнить до: ${dueDisplay}`);
     };
 
     // Удалить задачу
