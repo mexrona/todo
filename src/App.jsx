@@ -14,6 +14,9 @@ export default function App() {
     const [editingId, setEditingId] = useState(null);
     const [editValue, setEditValue] = useState("");
 
+    // Состояние для уведомления (message, type: 'success'/'info'/'warning')
+    const [notification, setNotification] = useState(null);
+
     // Загружаем задачи из localStorage когда компонент впервые монтируется
     useEffect(() => {
         const saved = localStorage.getItem("todos");
@@ -31,6 +34,21 @@ export default function App() {
         localStorage.setItem("todos", JSON.stringify(todos));
     }, [todos]);
 
+    // Автоматически скрываем уведомление через 3 секунды
+    useEffect(() => {
+        if (notification) {
+            const timer = setTimeout(() => {
+                setNotification(null);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [notification]);
+
+    // Функция для отправки уведомления
+    const showNotification = (message, type = "success") => {
+        setNotification({message, type});
+    };
+
     // Добавить новую задачу
     const handleAddTodo = (e) => {
         e.preventDefault();
@@ -47,19 +65,26 @@ export default function App() {
 
         setTodos([newTodo, ...todos]); // Добавляем новую задачу в начало
         setInputValue(""); // Очищаем инпут
+        showNotification("✅ Задача добавлена!");
     };
 
     // Удалить задачу
     const handleDeleteTodo = (id) => {
         setTodos(todos.filter((todo) => todo.id !== id));
+        showNotification("🗑️ Задача удалена", "info");
     };
 
     // Отметить задачу как выполненную/невыполненную
     const handleToggleTodo = (id) => {
+        const todo = todos.find((t) => t.id === id);
         setTodos(
             todos.map((todo) =>
                 todo.id === id ? {...todo, completed: !todo.completed} : todo,
             ),
+        );
+        showNotification(
+            todo.completed ? "↩️ Задача в работе" : "✓ Задача выполнена!",
+            "success",
         );
     };
 
@@ -80,6 +105,7 @@ export default function App() {
         );
         setEditingId(null);
         setEditValue("");
+        showNotification("✎️ Задача отредактирована", "success");
     };
 
     // Отменить редактирование
@@ -109,6 +135,22 @@ export default function App() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+            {/* Всплывающее уведомление */}
+            {notification && (
+                <div className="fixed top-4 right-4 z-50 animate-slide-in">
+                    <div
+                        className={`px-4 py-3 rounded-lg text-white font-medium shadow-lg ${
+                            notification.type === "success"
+                                ? "bg-green-500"
+                                : notification.type === "info"
+                                  ? "bg-blue-500"
+                                  : "bg-yellow-500"
+                        }`}>
+                        {notification.message}
+                    </div>
+                </div>
+            )}
+
             <div className="max-w-2xl mx-auto">
                 {/* Заголовок */}
                 <div className="bg-white rounded-lg shadow-lg p-6 mb-6">

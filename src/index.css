@@ -8,3 +8,18 @@ body {
         -apple-system,
         sans-serif;
 }
+/* Анимация появления уведомления */
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
